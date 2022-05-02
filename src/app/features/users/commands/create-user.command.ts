@@ -5,7 +5,7 @@ export const CREATE_USER_COMMAND_TYPE = "users/CREATE_USER";
 export interface CreateUserCommandPayload {
   name: string;
   code: string;
-  authorized: string;
+  authorized: boolean;
 }
 
 export class CreateUserCommand implements Command<CreateUserCommandPayload> {

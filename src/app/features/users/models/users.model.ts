@@ -1,9 +1,11 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { LogsModel } from "../../logs/models/logs.model";
 
 interface UsersModelProps {
   code: string;
   name: string;
-  authorized: string;
+  authorized: boolean;
+  unknown: boolean;
 }
 
 @Entity({
@@ -27,4 +29,10 @@ export class UsersModel {
 
   @Column()
   authorized: boolean;
+
+  @Column()
+  unknown: boolean;
+
+  @OneToMany(() => LogsModel, (log) => log.user)
+  logs: LogsModel[];
 }

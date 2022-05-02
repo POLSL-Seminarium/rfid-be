@@ -17,6 +17,7 @@ export const updateUserActionValidation = celebrate(
       name: Joi.string().min(1).max(20).optional(),
       code: Joi.string().min(1).max(100).optional(),
       authorized: Joi.boolean().optional(),
+      unknown: Joi.boolean().optional(),
     }).min(2),
   },
   { abortEarly: false, stripUnknown: true },

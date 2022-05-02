@@ -33,6 +33,7 @@ export default class CreateUserHandler implements CommandHandler<CreateUserComma
         name,
         code,
         authorized,
+        unknown: false,
       }),
     );
 
