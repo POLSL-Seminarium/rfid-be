@@ -11,7 +11,7 @@ export const createRouter = ({
 }: RoutingDependencies) => {
   const router = express.Router();
 
-  router.use("/example", usersRouting);
+  router.use("/users", usersRouting);
   // ROUTES_CONFIG
   return router;
 };
