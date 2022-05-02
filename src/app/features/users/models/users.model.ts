@@ -1,20 +1,22 @@
-import { Column, Entity, PrimaryColumn } from "typeorm";
+import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 
 interface UsersModelProps {
-  id: string;
+  code: string;
+  name: string;
+  authorized: string;
 }
 
 @Entity({
   name: "users",
 })
 export class UsersModel {
-  public static create(data: Partial<UsersModelProps>): UsersModel {
+  public static create(data: UsersModelProps): UsersModel {
     const entity = new UsersModel();
     Object.assign(entity, data);
     return entity;
   }
 
-  @PrimaryColumn()
+  @PrimaryGeneratedColumn("increment")
   id: string;
 
   @Column({ unique: true })
