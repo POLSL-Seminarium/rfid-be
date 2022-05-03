@@ -11,4 +11,5 @@ export interface WsOutgoingMessage {
 export interface WsIncomingMessage {
   type: WsMessageType;
   socketId: string;
+  [key: string]: any;
 }

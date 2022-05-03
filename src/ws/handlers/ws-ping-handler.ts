@@ -18,7 +18,7 @@ export class WsPingHandler implements WsHandler {
       target: [message.socketId],
       type: this.type,
       payload: {
-        ok: "pong",
+        result: "pong",
       },
     };
 

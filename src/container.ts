@@ -16,6 +16,7 @@ import { registerGraphQLDependencies } from "./container/graphql";
 import { WsHandlers } from "./ws/ws-handlers";
 import { WsPingHandler } from "./ws/handlers/ws-ping-handler";
 import { Subject } from "rxjs";
+import { WsGetUsersLogsHandler } from "./ws/handlers/ws-get-users-logs-handler";
 
 loadEnvs();
 
@@ -46,6 +47,7 @@ export async function createContainer(dependencies?: ContainerDependencies): Pro
 
   container.register({
     wsPingHandler: asClass(WsPingHandler),
+    wsGetUsersLogsHandler: asClass(WsGetUsersLogsHandler)
   })
 
   container.register({
@@ -53,6 +55,7 @@ export async function createContainer(dependencies?: ContainerDependencies): Pro
       logger: container.cradle.logger,
       handlers: {
         [WsPingHandler.prototype.type]: container.cradle.wsPingHandler,
+        [WsGetUsersLogsHandler.prototype.type]: container.cradle.wsGetUsersLogsHandler
       }
     }))
   })
