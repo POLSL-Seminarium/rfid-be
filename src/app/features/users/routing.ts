@@ -6,6 +6,7 @@ import { updateUserActionValidation } from "./actions/update-user.action";
 import { getUsersActionValidation } from "./actions/get-users.action";
 import { getUserActionValidation } from "./actions/get-user.action";
 import { userAccessActionValidation } from "./actions/user-access.action";
+import { getUserLogsActionValidation } from "./actions/get-user-logs.action";
 // VALIDATION_IMPORTS
 
 export interface UsersRoutingDependencies {
@@ -14,6 +15,7 @@ export interface UsersRoutingDependencies {
   getUsersAction: Action;
   getUserAction: Action;
   userAccessAction: Action;
+  getUserLogsAction: Action;
   // ACTIONS_IMPORTS
 }
 
@@ -29,6 +31,11 @@ export const usersRouting = (actions: UsersRoutingDependencies) => {
     actions.userAccessAction.invoke.bind(actions.userAccessAction),
   );
   router.get("/:id", [getUserActionValidation], actions.getUserAction.invoke.bind(actions.getUserAction));
+  router.get(
+    "/:id/logs",
+    [getUserLogsActionValidation],
+    actions.getUserLogsAction.invoke.bind(actions.getUserLogsAction),
+  );
   // ACTIONS_SETUP
 
   return router;
