@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+</head>
+<body>
+    
+
+<!-- <script src="/socket.io/socket.io.js"></script> -->
+<!-- <script src="https://cdn.socket.io/4.5.0/socket.io.min.js" integrity="sha384-7EyYLQZgWBi67fBtVxw60/OWl1kjsfrPFcaU0pp0nAh+i8FD068QogUvg85Ewy1k" crossorigin="anonymous"></script>
+<script>
+  const socket = io();
+</script> -->
+
+<script type="module">
+    import { io } from "https://cdn.socket.io/4.3.2/socket.io.esm.min.js";
+
+    const socket = io("http://localhost:1338/");
+
+    socket.on("connect", () => {
+        console.log(socket.id); // x8WIv7-mJelg7on_ALbx
+
+        socket.emit({
+            type: "ping"
+        });
+    });
+
+
+    socket.on("data", (data) => { 
+        console.log("I've got something");
+        console.log(data)
+    });
+
+    socket.onAny((eventName, ...args) => {
+        console.log("any event");
+        console.log(eventName);
+        console.log(args);
+    })
+
+</script>
+
+
+</body>
+</html>

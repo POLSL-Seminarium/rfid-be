@@ -1,4 +1,4 @@
-import { asFunction, asValue, AwilixContainer, createContainer as createAwilixContainer, InjectionMode } from "awilix";
+import { asClass, asFunction, asValue, AwilixContainer, createContainer as createAwilixContainer, InjectionMode } from "awilix";
 import * as http from "http";
 import { Connection } from "typeorm";
 import { createApp } from "./app/app";
@@ -13,6 +13,9 @@ import { registerCommandHandlers } from "./container/command-handlers";
 import { registerRouting } from "./container/routing";
 import { registerSubscribers } from "./container/subscribers";
 import { registerGraphQLDependencies } from "./container/graphql";
+import { WsHandlers } from "./ws/ws-handlers";
+import { WsPingHandler } from "./ws/handlers/ws-ping-handler";
+import { Subject } from "rxjs";
 
 loadEnvs();
 
@@ -36,6 +39,23 @@ export async function createContainer(dependencies?: ContainerDependencies): Pro
   await registerGraphQLDependencies(container);
   await registerSubscribers(container);
   await registerDatabase(container, dependencies);
+
+  container.register({
+    messagesToSocketStream: asValue(new Subject()),
+  })
+
+  container.register({
+    wsPingHandler: asClass(WsPingHandler),
+  })
+
+  container.register({
+    wsHandlers: asValue(new WsHandlers({
+      logger: container.cradle.logger,
+      handlers: {
+        [WsPingHandler.prototype.type]: container.cradle.wsPingHandler,
+      }
+    }))
+  })
 
   container.register({
     app: asFunction(createApp).singleton(),

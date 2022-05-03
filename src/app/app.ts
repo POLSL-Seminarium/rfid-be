@@ -8,6 +8,12 @@ import { QueryBus } from "@tshio/query-bus";
 import { MiddlewareType } from "../shared/middleware-type/middleware.type";
 import { NotFoundError } from "../errors/not-found.error";
 import swaggerExpressOptions from "../tools/swagger";
+import { Server } from "socket.io";
+import { WsHandlers } from "../ws/ws-handlers";
+import { Subject } from "rxjs";
+import { WsOutgoingMessage } from "../ws/types/ws-message";
+import { createServer } from "http";
+import { Logger } from "@tshio/logger";
 
 export interface AppDependencies {
   router: express.Router;
@@ -16,9 +22,22 @@ export interface AppDependencies {
   commandBus: CommandBus;
   queryBus: QueryBus<any>;
   resolvers: any;
+  wsHandlers: WsHandlers;
+  messagesToSocketStream: Subject<any>;
+  logger: Logger;
 }
 
-async function createApp({ router, errorHandler, graphQLSchema, commandBus, queryBus, resolvers }: AppDependencies) {
+async function createApp({
+  router,
+  errorHandler,
+  graphQLSchema,
+  commandBus,
+  queryBus,
+  resolvers,
+  wsHandlers,
+  messagesToSocketStream,
+  logger,
+}: AppDependencies) {
   const typeDefs = gql(graphQLSchema);
 
   const app = express();
@@ -60,6 +79,42 @@ async function createApp({ router, errorHandler, graphQLSchema, commandBus, quer
 
   app.use("*", (req, res, next) => next(new NotFoundError("Page not found")));
   app.use(errorHandler);
+
+  const httpServer = createServer(app);
+  const io = new Server(httpServer, {
+    cors: {
+      origin: "*",
+    },
+  });
+
+  io.on("connection", (socket) => {
+    socket.onAny((message) => {
+      logger.info("Incoming ws message: %o", message);
+      wsHandlers.handle({
+        socketId: socket.id,
+        ...message,
+      });
+    });
+
+    // socket.on("message", (message) => {
+    //   logger.info("Incoming ws message: %o", message);
+    //   wsHandlers.handle({
+    //     socketId: socket.id,
+    //     ...message,
+    //   });
+    // });
+  });
+
+  messagesToSocketStream.subscribe((message: WsOutgoingMessage) => {
+    message.target.forEach((id) => {
+      io.to(id).emit("message", {
+        type: message.type,
+        payload: message.payload,
+      });
+    });
+  });
+
+  io.listen(1338);
 
   return app;
 }
