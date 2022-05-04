@@ -95,23 +95,22 @@ async function createApp({
         ...message,
       });
     });
-
-    // socket.on("message", (message) => {
-    //   logger.info("Incoming ws message: %o", message);
-    //   wsHandlers.handle({
-    //     socketId: socket.id,
-    //     ...message,
-    //   });
-    // });
   });
 
   messagesToSocketStream.subscribe((message: WsOutgoingMessage) => {
-    message.target.forEach((id) => {
-      io.to(id).emit("message", {
+    if (message.targetType === "ALL") {
+      io.emit("message", {
         type: message.type,
         payload: message.payload,
       });
-    });
+    } else if (message.targetType === "CUSTOM") {
+      message.target.forEach((id) => {
+        io.to(id).emit("message", {
+          type: message.type,
+          payload: message.payload,
+        });
+      });
+    }
   });
 
   io.listen(1338);

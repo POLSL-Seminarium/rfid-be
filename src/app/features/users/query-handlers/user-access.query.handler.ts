@@ -7,11 +7,14 @@ import { UsersModel } from "../models/users.model";
 import { USER_ACCESS_QUERY_TYPE, UserAccessQuery, UserAccessQueryResult } from "../queries/user-access";
 import { v4 } from "uuid";
 import { StatusCodes } from "http-status-codes";
+import { Subject } from "rxjs";
+import { WsOutgoingMessage } from "../../../../ws/types/ws-message";
 
 export interface UserAccessQueryHandlerDependencies {
   logger: Logger;
   usersRepository: Repository<UsersModel>;
   logsRepository: Repository<LogsModel>;
+  messagesToSocketStream: Subject<any>;
 }
 
 const generateUnknownName = () => `unknown-${v4().split("-")[0]}`;
@@ -22,18 +25,14 @@ export default class UserAccessQueryHandler implements QueryHandler<UserAccessQu
   constructor(private dependencies: UserAccessQueryHandlerDependencies) {}
 
   async execute(query: UserAccessQuery): Promise<UserAccessQueryResult> {
-    const { usersRepository, logsRepository } = this.dependencies;
+    const { usersRepository, logsRepository, messagesToSocketStream } = this.dependencies;
     const { code } = query.payload;
-
-    this.dependencies.logger.info("XD: %o", code);
 
     const user = await usersRepository.findOne({
       where: {
         code,
       },
     });
-
-    this.dependencies.logger.info("%o", user);
 
     if (!user) {
       const newUser = await usersRepository.save(
@@ -45,34 +44,62 @@ export default class UserAccessQueryHandler implements QueryHandler<UserAccessQu
         }),
       );
 
-      await logsRepository.save(
+      const log = await logsRepository.save(
         LogsModel.create({
           user: newUser,
           authorized: false,
         }),
       );
 
+      this.publicNewLog({
+        ...log,
+        user: newUser,
+      });
+
       throw new HttpError(`Unauthorized`, StatusCodes.UNAUTHORIZED);
     }
 
     if (!user.authorized) {
-      await logsRepository.save(
+      const log = await logsRepository.save(
         LogsModel.create({
           user,
           authorized: false,
         }),
       );
 
+      this.publicNewLog({
+        ...log,
+        user,
+      });
+
       throw new HttpError(`Unauthorized`, StatusCodes.UNAUTHORIZED);
     }
 
-    await logsRepository.save(
+    const log = await logsRepository.save(
       LogsModel.create({
         user,
         authorized: true,
       }),
     );
 
+    this.publicNewLog({
+      ...log,
+      user,
+    });
+
     return new UserAccessQueryResult({});
+  }
+
+  private publicNewLog(log: LogsModel) {
+    const wsOutgoingMessage: WsOutgoingMessage = {
+      targetType: "ALL",
+      target: [],
+      type: "user-log",
+      payload: {
+        log,
+      },
+    };
+
+    this.dependencies.messagesToSocketStream.next(wsOutgoingMessage);
   }
 }

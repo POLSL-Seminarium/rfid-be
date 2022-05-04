@@ -35,6 +35,7 @@ export class WsGetUsersLogsHandler implements WsHandler {
     });
 
     const outgoingMessage: WsOutgoingMessage = {
+      targetType: "CUSTOM",
       target: [message.socketId],
       type: this.type,
       payload: {

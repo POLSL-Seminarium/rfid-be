@@ -15,6 +15,7 @@ export class WsPingHandler implements WsHandler {
     const { messagesToSocketStream } = this.dependencies;
 
     const outgoingMessage: WsOutgoingMessage = {
+      targetType: "CUSTOM",
       target: [message.socketId],
       type: this.type,
       payload: {

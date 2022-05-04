@@ -1,6 +1,7 @@
 type WsMessageType = string;
 
 export interface WsOutgoingMessage {
+  targetType: "ALL" | "CUSTOM";
   target: string[];
   type: WsMessageType;
   payload: {
