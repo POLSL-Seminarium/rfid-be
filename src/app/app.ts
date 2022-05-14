@@ -98,6 +98,8 @@ async function createApp({
   });
 
   messagesToSocketStream.subscribe((message: WsOutgoingMessage) => {
+    logger.info("Outgoing ws message: %o", message);
+
     if (message.targetType === "ALL") {
       io.emit("message", {
         type: message.type,
